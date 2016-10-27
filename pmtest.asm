@@ -6,6 +6,7 @@
 %include	"pm.inc"	; 常量, 宏, 以及一些说明
 
 org	0100h
+	xchg  bx, bx		; Break the program.
 	jmp	LABEL_BEGIN
 
 [SECTION .gdt]

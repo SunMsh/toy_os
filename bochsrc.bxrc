@@ -31,3 +31,5 @@ mouse: enabled=0
 #SunMs: keyboard_mapping: enabled=1, map=/usr/share/bochs/keymaps/x11-pc-us.map
 #SunMs: Add the line below:
 keyboard_mapping: enabled=1, map=$BXSHARE/keymaps/x11-pc-us.map
+
+magic_break: enabled=1
