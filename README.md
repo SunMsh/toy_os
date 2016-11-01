@@ -18,7 +18,7 @@ I will push codes and related files(like image, configured files) into Git repo 
 	
 - Mount onto the floppy and copy the binary file:
 
-		$ sudo mount -o loop xxx.img /mnt/hgfs/xxx/xxx/...(where yout share folder located)
+		$ sudo mount -o loop xxx.img /mnt/hgfs/xxx/xxx/...(where your share folder located)
 	
 		$ sudo cp xxx.com /mnt/hgfs/xxx/xxx/...
 	
@@ -38,3 +38,4 @@ I will push codes and related files(like image, configured files) into Git repo 
 	
 	* debug with the command in cmd.exe window...
 	
+	* Tip: put "xchg  bx, bx" before some statement and "magic_break: enabled=1" in the end of bochsrc.bxrc file. The program will stop here when debug is ruuning. But you can not run the program directly.
