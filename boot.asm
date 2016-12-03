@@ -1,5 +1,5 @@
 
-;%define	_BOOT_DEBUG_	; 做 Boot Sector 时一定将此行注释掉!将此行打开后用 nasm Boot.asm -o Boot.com 做成一个.COM文件易于调试
+;%define	_BOOT_DEBUG_
 
 %ifdef	_BOOT_DEBUG_
 	org  0100h			; 调试状态, 做成 .COM 文件, 可调试
@@ -17,35 +17,35 @@ BaseOfStack		equ	07c00h	; Boot状态下堆栈基地址(栈底, 从这个位置�
 BaseOfLoader		equ	09000h	; LOADER.BIN 被加载到的位置 ----  段地址
 OffsetOfLoader		equ	0100h	; LOADER.BIN 被加载到的位置 ---- 偏移地址
 
-RootDirSectors		equ	14	; 根目录占用空间
+RootDirSectors			equ	14	; 根目录占用空间 = (BPB_RootEntCnt * 32 + (BPB_BytsPerSec-1))/ BPB_BytsPerSec = (224*32 + (512-1)) / 512 = 14.998 
 SectorNoOfRootDirectory	equ	19	; Root Directory 的第一个扇区号
-SectorNoOfFAT1		equ	1	; FAT1 的第一个扇区号 = BPB_RsvdSecCnt
-DeltaSectorNo		equ	17	; DeltaSectorNo = BPB_RsvdSecCnt + (BPB_NumFATs * FATSz) - 2
-					; 文件的开始Sector号 = DirEntry中的开始Sector号 + 根目录占用Sector数目 + DeltaSectorNo
+SectorNoOfFAT1			equ	1	; FAT1 的第一个扇区号 = BPB_RsvdSecCnt
+DeltaSectorNo			equ	17	; DeltaSectorNo = BPB_RsvdSecCnt + (BPB_NumFATs * FATSz) - 2
+								; 文件的开始Sector号 = DirEntry中的开始Sector号 + 根目录占用Sector数目 + DeltaSectorNo
 ;================================================================================================
 
 	jmp short LABEL_START		; Start to boot.
 	nop				; 这个 nop 不可少
 
 	; 下面是 FAT12 磁盘的头
-	BS_OEMName	DB 'ForrestY'	; OEM String, 必须 8 个字节
+	BS_OEMName		DB 'SunMs_OS'	; OEM String, 必须 8 个字节
 	BPB_BytsPerSec	DW 512		; 每扇区字节数
 	BPB_SecPerClus	DB 1		; 每簇多少扇区
 	BPB_RsvdSecCnt	DW 1		; Boot 记录占用多少扇区
-	BPB_NumFATs	DB 2		; 共有多少 FAT 表
+	BPB_NumFATs		DB 2		; 共有多少 FAT 表
 	BPB_RootEntCnt	DW 224		; 根目录文件数最大值
 	BPB_TotSec16	DW 2880		; 逻辑扇区总数
-	BPB_Media	DB 0xF0		; 媒体描述符
-	BPB_FATSz16	DW 9		; 每FAT扇区数
+	BPB_Media		DB 0xF0		; 媒体描述符
+	BPB_FATSz16		DW 9		; 每FAT扇区数
 	BPB_SecPerTrk	DW 18		; 每磁道扇区数
 	BPB_NumHeads	DW 2		; 磁头数(面数)
-	BPB_HiddSec	DD 0		; 隐藏扇区数
+	BPB_HiddSec		DD 0		; 隐藏扇区数
 	BPB_TotSec32	DD 0		; 如果 wTotalSectorCount 是 0 由这个值记录扇区数
-	BS_DrvNum	DB 0		; 中断 13 的驱动器号
+	BS_DrvNum		DB 0		; 中断 13 的驱动器号
 	BS_Reserved1	DB 0		; 未使用
-	BS_BootSig	DB 29h		; 扩展引导标记 (29h)
-	BS_VolID	DD 0		; 卷序列号
-	BS_VolLab	DB 'OrangeS0.02'; 卷标, 必须 11 个字节
+	BS_BootSig		DB 29h		; 扩展引导标记 (29h)
+	BS_VolID		DD 0		; 卷序列号
+	BS_VolLab		DB 'SunMs_OS_01'; 卷标, 必须 11 个字节
 	BS_FileSysType	DB 'FAT12   '	; 文件系统类型, 必须 8个字节  
 
 LABEL_START:	
@@ -68,14 +68,14 @@ LABEL_START:
 	
 	xor	ah, ah	; ┓
 	xor	dl, dl	; ┣ 软驱复位
-	int	13h	; ┛
+	int	13h		; ┛
 	
 ; 下面在 A 盘的根目录寻找 LOADER.BIN
-	mov	word [wSectorNo], SectorNoOfRootDirectory
+	mov	word [wSectorNo], SectorNoOfRootDirectory ;19
 LABEL_SEARCH_IN_ROOT_DIR_BEGIN:
-	cmp	word [wRootDirSizeForLoop], 0	; ┓
-	jz	LABEL_NO_LOADERBIN		; ┣ 判断根目录区是不是已经读完
-	dec	word [wRootDirSizeForLoop]	; ┛ 如果读完表示没有找到 LOADER.BIN
+	cmp	word [wRootDirSizeForLoop], 0	; ┓ 14
+	jz	LABEL_NO_LOADERBIN				; ┣ 判断根目录区是不是已经读完
+	dec	word [wRootDirSizeForLoop]		; ┛ 如果读完表示没有找到 LOADER.BIN
 	mov	ax, BaseOfLoader
 	mov	es, ax			; es <- BaseOfLoader
 	mov	bx, OffsetOfLoader	; bx <- OffsetOfLoader	于是, es:bx = BaseOfLoader:OffsetOfLoader
@@ -86,16 +86,16 @@ LABEL_SEARCH_IN_ROOT_DIR_BEGIN:
 	mov	si, LoaderFileName	; ds:si -> "LOADER  BIN"
 	mov	di, OffsetOfLoader	; es:di -> BaseOfLoader:0100 = BaseOfLoader*10h+100
 	cld
-	mov	dx, 10h
+	mov	dx, 10h		; 512 / 20h(每根目录条目占字节数) = 10h
 LABEL_SEARCH_FOR_LOADERBIN:
-	cmp	dx, 0										; ┓循环次数控制,
+	cmp	dx, 0								; ┓循环次数控制,
 	jz	LABEL_GOTO_NEXT_SECTOR_IN_ROOT_DIR	; ┣如果已经读完了一个 Sector,
-	dec	dx											; ┛就跳到下一个 Sector
-	mov	cx, 11
+	dec	dx									; ┛就跳到下一个 Sector
+	mov	cx, 11		; 文件名字节数
 LABEL_CMP_FILENAME:
 	cmp	cx, 0
 	jz	LABEL_FILENAME_FOUND	; 如果比较了 11 个字符都相等, 表示找到
-dec	cx
+	dec	cx
 	lodsb				; ds:si -> al
 	cmp	al, byte [es:di]
 	jz	LABEL_GO_ON
@@ -106,10 +106,10 @@ LABEL_GO_ON:
 	jmp	LABEL_CMP_FILENAME	;	继续循环
 
 LABEL_DIFFERENT:
-	and	di, 0FFE0h						; else ┓	di &= E0 为了让它指向本条目开头
-	add	di, 20h							;     ┃
-	mov	si, LoaderFileName					;     ┣ di += 20h  下一个目录条目
-	jmp	LABEL_SEARCH_FOR_LOADERBIN;    ┛
+	and	di, 0FFE0h						; else	┓	di &= E0 为了让它指向本条目开头
+	add	di, 20h							;		┃
+	mov	si, LoaderFileName				;		┣ di += 20h  下一个目录条目
+	jmp	LABEL_SEARCH_FOR_LOADERBIN		;		┛
 
 LABEL_GOTO_NEXT_SECTOR_IN_ROOT_DIR:
 	add	word [wSectorNo], 1
@@ -132,7 +132,7 @@ LABEL_FILENAME_FOUND:			; 找到 LOADER.BIN 后便来到这里继续
 	mov	cx, word [es:di]
 	push	cx			; 保存此 Sector 在 FAT 中的序号
 	add	cx, ax
-	add	cx, DeltaSectorNo	; cl <- LOADER.BIN的起始扇区号(0-based)
+	add	cx, DeltaSectorNo	; cl <- LOADER.BIN的起始扇区号(0-based) = 19(引导和FAT) + 14(根目录区) + x(数据区开始簇号) - 2(第0个和第1个FAT项不用)
 	mov	ax, BaseOfLoader
 	mov	es, ax			; es <- BaseOfLoader
 	mov	bx, OffsetOfLoader	; bx <- OffsetOfLoader
@@ -144,9 +144,9 @@ LABEL_GOON_LOADING_FILE:
 	mov	ah, 0Eh			;  | 每读一个扇区就在 "Booting  " 后面
 	mov	al, '.'			;  | 打一个点, 形成这样的效果:
 	mov	bl, 0Fh			;  | Booting ......
-	int	10h			;  |
-	pop	bx			;  |
-	pop	ax			; /
+	int	10h				;  |
+	pop	bx				;  |
+	pop	ax				; /
 
 	mov	cl, 1
 	call	ReadSector
@@ -223,7 +223,7 @@ ReadSector:
 	; 怎样由扇区号求扇区在磁盘中的位置 (扇区号 -> 柱面号, 起始扇区, 磁头号)
 	; -----------------------------------------------------------------------
 	; 设扇区号为 x
-	;                           ┌ 柱面号 = y >> 1
+	;                          ┌ 柱面号 = y >> 1
 	;       x           ┌ 商 y ┤
 	; -------------- => ┤      └ 磁头号 = y & 1
 	;  每磁道扇区数     │
@@ -263,15 +263,16 @@ ReadSector:
 ;	找到序号为 ax 的 Sector 在 FAT 中的条目, 结果放在 ax 中
 ;	需要注意的是, 中间需要读 FAT 的扇区到 es:bx 处, 所以函数一开始保存了 es 和 bx
 GetFATEntry:
+	xchg  bx, bx		; Break the program.
 	push	es
 	push	bx
 	push	ax
 	mov	ax, BaseOfLoader; `.
-	sub	ax, 0100h	;  | 在 BaseOfLoader 后面留出 4K 空间用于存放 FAT
-	mov	es, ax		; /
+	sub	ax, 0100h	;  	   | 在 BaseOfLoader 后面留出 4K 空间用于存放 FAT
+	mov	es, ax		; 	  /
 	pop	ax
 	mov	byte [bOdd], 0
-	mov	bx, 3
+	mov	bx, 3		; ax里放的是FAT Num, 而每个Num占12位
 	mul	bx			; dx:ax = ax * 3
 	mov	bx, 2
 	div	bx			; dx:ax / 2  ==>  ax <- 商, dx <- 余数
