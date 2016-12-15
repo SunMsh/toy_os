@@ -32,4 +32,4 @@ mouse: enabled=0
 #SunMs: Add the line below:
 keyboard_mapping: enabled=1, map=$BXSHARE/keymaps/x11-pc-us.map
 
-#magic_break: enabled=1
+magic_break: enabled=1

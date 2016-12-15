@@ -19,7 +19,7 @@ global	out_byte
 global	in_byte
 
 ; ========================================================================
-;                  void disp_str(char * pszInfo);
+;                  void disp_str(char * info);
 ; ========================================================================
 disp_str:
 	push	ebp
