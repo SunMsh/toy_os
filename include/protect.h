@@ -88,18 +88,6 @@ typedef struct s_tss {
 /* 每个任务有一个单独的 LDT, 每个 LDT 中的描述符个数: */
 #define LDT_SIZE		2
 
-/* 选择子类型值说明 */
-/* 其中, SA_ : Selector Attribute */
-#define	SA_RPL_MASK	0xFFFC
-#define	SA_RPL0		0
-#define	SA_RPL1		1
-#define	SA_RPL2		2
-#define	SA_RPL3		3
-
-#define	SA_TI_MASK	0xFFFB
-#define	SA_TIG		0
-#define	SA_TIL		4
-
 /* 描述符类型值说明 */
 #define	DA_32			0x4000	/* 32 位段				*/
 #define	DA_LIMIT_4K		0x8000	/* 段界限粒度为 4K 字节			*/
@@ -122,6 +110,18 @@ typedef struct s_tss {
 #define	DA_386CGate		0x8C	/* 386 调用门类型值			*/
 #define	DA_386IGate		0x8E	/* 386 中断门类型值			*/
 #define	DA_386TGate		0x8F	/* 386 陷阱门类型值			*/
+
+/* 选择子类型值说明 */
+/* 其中, SA_ : Selector Attribute */
+#define	SA_RPL_MASK	0xFFFC
+#define	SA_RPL0		0
+#define	SA_RPL1		1
+#define	SA_RPL2		2
+#define	SA_RPL3		3
+
+#define	SA_TI_MASK	0xFFFB
+#define	SA_TIG		0
+#define	SA_TIL		4
 
 /* 中断向量 */
 #define	INT_VECTOR_DIVIDE		0x0
