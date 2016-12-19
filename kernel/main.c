@@ -62,9 +62,13 @@ PUBLIC int kernel_main()
 		selector_ldt += 1 << 3;
 	}
 
-	k_reenter = -1;
+	k_reenter = 0;
 
-	p_proc_ready	= proc_table; 
+	p_proc_ready	= proc_table;
+
+        put_irq_handler(CLOCK_IRQ, clock_handler); /* Éè¶¨Ê±ÖÓÖÐ¶Ï´¦Àí³ÌÐò */
+        enable_irq(CLOCK_IRQ);                     /* ÈÃ8259A¿ÉÒÔ½ÓÊÕÊ±ÖÓÖÐ¶Ï */
+
 	restart();
 
 	while(1){}
@@ -98,3 +102,16 @@ void TestB()
 	}
 }
 
+/*======================================================================*
+                               TestC
+ *======================================================================*/
+void TestC()
+{
+	int i = 0x2000;
+	while(1){
+		disp_str("C");
+		disp_int(i++);
+		disp_str(".");
+		delay(1);
+	}
+}

@@ -113,7 +113,7 @@ PUBLIC void init_prot()
 	for(i=0;i<NR_TASKS;i++){
 		init_descriptor(&gdt[selector_ldt>>3],
 				vir2phys(seg2phys(SELECTOR_KERNEL_DS),
-					proc_table[i].ldts),
+					proc_table[i].ldts),  //TBU
 				LDT_SIZE * sizeof(DESCRIPTOR) - 1,
 				DA_LDT);
 		p_proc++;
