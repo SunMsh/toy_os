@@ -27,7 +27,8 @@ PUBLIC int kernel_main()
 	char*		p_task_stack	= task_stack + STACK_SIZE_TOTAL;
 	u16		selector_ldt	= SELECTOR_LDT_FIRST;
 	int i;
-	for(i=0;i<NR_TASKS;i++){
+	for(i=0;i<NR_TASKS;i++)
+	{
 		strcpy(p_proc->p_name, p_task->name);	// name of the process
 		p_proc->pid = i;			// pid
 
@@ -80,7 +81,8 @@ PUBLIC int kernel_main()
 void TestA()
 {
 	int i = 0;
-	while(1){
+	while (1) {
+		get_ticks();
 		disp_str("A");
 		disp_int(i++);
 		disp_str(".");
