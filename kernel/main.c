@@ -66,8 +66,8 @@ PUBLIC int kernel_main()
 
 	p_proc_ready	= proc_table;
 
-        put_irq_handler(CLOCK_IRQ, clock_handler); /* Éè¶¨Ê±ÖÓÖÐ¶Ï´¦Àí³ÌÐò */
-        enable_irq(CLOCK_IRQ);                     /* ÈÃ8259A¿ÉÒÔ½ÓÊÕÊ±ÖÓÖÐ¶Ï */
+        put_irq_handler(CLOCK_IRQ, clock_handler); /* 设定时钟中断处理程序 */
+        enable_irq(CLOCK_IRQ);                     /* 让8259A可以接收时钟中断 */
 
 	restart();
 
