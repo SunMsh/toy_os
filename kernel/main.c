@@ -64,8 +64,14 @@ PUBLIC int kernel_main()
 	}
 
 	k_reenter = 0;
+	ticks = 0;
 
 	p_proc_ready	= proc_table;
+
+        /* ??? 8253 PIT */
+        out_byte(TIMER_MODE, RATE_GENERATOR);
+        out_byte(TIMER0, (u8) (TIMER_FREQ/HZ) );
+        out_byte(TIMER0, (u8) ((TIMER_FREQ/HZ) >> 8));
 
         put_irq_handler(CLOCK_IRQ, clock_handler); /* 设定时钟中断处理程序 */
         enable_irq(CLOCK_IRQ);                     /* 让8259A可以接收时钟中断 */
@@ -82,11 +88,10 @@ void TestA()
 {
 	int i = 0;
 	while (1) {
-		get_ticks();
 		disp_str("A");
-		disp_int(i++);
+		disp_int(get_ticks());
 		disp_str(".");
-		delay(1);
+		milli_delay(1000);
 	}
 }
 

@@ -16,6 +16,9 @@ global	get_ticks ; 导出符号
 bits 32
 [section .text]
 
+; ====================================================================
+;                              get_ticks
+; ====================================================================
 get_ticks:
 	mov	eax, _NR_get_ticks
 	int	INT_VECTOR_SYS_CALL
