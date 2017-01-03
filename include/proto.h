@@ -33,9 +33,13 @@ PUBLIC void spurious_irq(int irq);
 
 /* clock.c */
 PUBLIC void clock_handler(int irq);
+PUBLIC void init_clock();
 
+/* keyboard.c */
+PUBLIC void init_keyboard();
 
-/* 以下是系统调用相关 */
+/* tty.c */
+PUBLIC void task_tty();
 
 /* proc.c */
 PUBLIC  int     sys_get_ticks();        /* sys_call */
