@@ -41,6 +41,8 @@ PUBLIC void init_keyboard();
 /* tty.c */
 PUBLIC void task_tty();
 
+/* 以下是系统调用相关 */
+
 /* proc.c */
 PUBLIC  int     sys_get_ticks();        /* sys_call */
 
