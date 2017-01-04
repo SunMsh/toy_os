@@ -41,7 +41,7 @@ PUBLIC void init_keyboard();
 /* tty.c */
 PUBLIC void task_tty();
 
-/* ртобйго╣мЁ╣ВсцоЮ╧ь */
+/* Д╩╔Д╦▀Ф≤╞ГЁ╩Г╩÷Х╟┐Г■╗Г⌡╦Е┘Ё */
 
 /* proc.c */
 PUBLIC  int     sys_get_ticks();        /* sys_call */
