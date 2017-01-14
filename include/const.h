@@ -45,6 +45,9 @@
 #define	RPL_TASK	SA_RPL1
 #define	RPL_USER	SA_RPL3
 
+/* TTY */
+#define NR_CONSOLES	3	/* consoles */
+
 /* 8259A interrupt controller ports. */
 #define INT_M_CTL     0x20 /* I/O port for interrupt controller       <Master> */
 #define INT_M_CTLMASK 0x21 /* setting bits in this port disables ints <Master> */
@@ -68,6 +71,16 @@
 #define KB_CMD		0x64	/* I/O port for keyboard command
 					Read : Read Status Register
 					Write: Write Input Buffer(8042 Command) */
+
+/* VGA */
+#define	CRTC_ADDR_REG	0x3D4	/* CRT Controller Registers - Addr Register */
+#define	CRTC_DATA_REG	0x3D5	/* CRT Controller Registers - Data Register */
+#define	START_ADDR_H	0xC	/* reg index of video mem start addr (MSB) */
+#define	START_ADDR_L	0xD	/* reg index of video mem start addr (LSB) */
+#define	CURSOR_H	0xE	/* reg index of cursor position (MSB) */
+#define	CURSOR_L	0xF	/* reg index of cursor position (LSB) */
+#define	V_MEM_BASE	0xB8000	/* base of color video memory */
+#define	V_MEM_SIZE	0x8000	/* 32K: B8000H -> BFFFFH */
 
 /* Hardware interrupts */
 #define	NR_IRQ		16	/* Number of IRQs */

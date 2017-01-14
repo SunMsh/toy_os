@@ -40,6 +40,7 @@ PUBLIC void init_keyboard();
 
 /* tty.c */
 PUBLIC void task_tty();
+PUBLIC void in_process(TTY* p_tty, u32 key);
 
 /* 以下是系统调用相关 */
 
