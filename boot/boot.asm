@@ -7,28 +7,28 @@
 ; ***************************************************************************************
 
 
-;%define	_BOOT_DEBUG_	; 做 Boot Sector 时一定将此行注释掉!将此行打开后用 nasm Boot.asm -o Boot.com 做成一个.COM文件易于调试
+;%define	_BOOT_DEBUG_	; Just be used in debug mode as an .com file. via nasm Boot.asm -o Boot.com
 
 %ifdef	_BOOT_DEBUG_
-	org  0100h			; 调试状态, 做成 .COM 文件, 可调试
+	org  0100h				; Debug Mode, as an n.COM file
 %else
-	org  07c00h			; Boot 状态, Bios 将把 Boot Sector 加载到 0:7C00 处并开始执行
+	org  07c00h				; Normal Mode, BIOS loads Boot Sector into 0:7C00
 %endif
 
 ;================================================================================================
 %ifdef	_BOOT_DEBUG_
-BaseOfStack		equ	0100h	; 调试状态下堆栈基地址(栈底, 从这个位置向低地址生长)
+BaseOfStack	equ	0100h		; Debug Mode. the bottom of Stack, growing from this base to low address.
 %else
-BaseOfStack		equ	07c00h	; Boot状态下堆栈基地址(栈底, 从这个位置向低地址生长)
+BaseOfStack	equ	07c00h		; Normal Mode. the bottom of Stack, growing from this base to low address.
 %endif
 
 %include	"load.inc"
 ;================================================================================================
 
-	jmp short LABEL_START		; Start to boot.
-	nop				; 这个 nop 不可少
+	jmp short LABEL_START	; Start to boot.
+	nop						; Necessary.
 
-; 下面是 FAT12 磁盘的头, 之所以包含它是因为下面用到了磁盘的一些信息
+;Include the FAT12 header.
 %include	"fat12hdr.inc"
 
 LABEL_START:	
@@ -38,59 +38,59 @@ LABEL_START:
 	mov	ss, ax
 	mov	sp, BaseOfStack
 
-	; 清屏
-	mov	ax, 0600h		; AH = 6,  AL = 0h
-	mov	bx, 0700h		; 黑底白字(BL = 07h)
-	mov	cx, 0			; 左上角: (0, 0)
-	mov	dx, 0184fh		; 右下角: (80, 50)
-	int	10h			; int 10h
+	;Clear the screen
+	mov	ax, 0600h			; AH = 6,  AL = 0h
+	mov	bx, 0700h			; Black Background, White Front(BL = 07h)
+	mov	cx, 0				; Pos of Left-Up(0, 0)
+	mov	dx, 0184fh			; Pos of Right-Down(80, 50)
+	int	10h					; int 10h
 
-	mov	dh, 0			; "Booting  "
-	call	DispStr			; 显示字符串
+	mov	dh, 0				; "Booting  "
+	call	DispStr			; Display the string.
 	
-	; 软驱复位
+	;Reset the floppy driver.
 	xor	ah, ah
 	xor	dl, dl
 	int	13h
 	
-; 下面在 A 盘的根目录寻找 LOADER.BIN
+;Find LOADER.BIN in Root Directoty of A: Disk.
 	mov	word [wSectorNo], SectorNoOfRootDirectory
 LABEL_SEARCH_IN_ROOT_DIR_BEGIN:
-	cmp	word [wRootDirSizeForLoop], 0	; 14个扇区
-	jz	LABEL_NO_LOADERBIN			;  判断根目录区是不是已经读完
-	dec	word [wRootDirSizeForLoop]	;  如果读完表示没有找到 LOADER.BIN
+	cmp	word [wRootDirSizeForLoop], 0	; 14 sectors
+	jz	LABEL_NO_LOADERBIN				; Check if reading the root folder is finished ?
+	dec	word [wRootDirSizeForLoop]		; If Yes, not found LOADER.BIN
 	mov	ax, BaseOfLoader
-	mov	es, ax				; es <- BaseOfLoader
-	mov	bx, OffsetOfLoader	; bx <- OffsetOfLoader	于是, es:bx = BaseOfLoader:OffsetOfLoader
-	mov	ax, [wSectorNo]		; ax <- Root Directory 中的某 Sector 号
+	mov	es, ax							; es <= BaseOfLoader
+	mov	bx, OffsetOfLoader				; bx <= OffsetOfLoader, Then es:bx = BaseOfLoader:OffsetOfLoader
+	mov	ax, [wSectorNo]					; ax <= Sector No. in Root Directory
 	mov	cl, 1
 	call	ReadSector
 
-	mov	si, LoaderFileName	; ds:si -> "LOADER  BIN"
-	mov	di, OffsetOfLoader	; es:di -> BaseOfLoader:0100 = BaseOfLoader*10h+100
+	mov	si, LoaderFileName				; ds:si => "LOADER  BIN"
+	mov	di, OffsetOfLoader				; es:di => BaseOfLoader:0100 = BaseOfLoader*10h + 100
 	cld
-	mov	dx, 10h		; 512 / 0x20 = 16个根目录区条目格式
+	mov	dx, 10h							; 512 / 0x20 = 16, number of Root Directory Entry
 LABEL_SEARCH_FOR_LOADERBIN:
-	cmp	dx, 0								; 循环次数控制,
-	jz	LABEL_GOTO_NEXT_SECTOR_IN_ROOT_DIR	; 如果已经读完了一个 Sector,
-	dec	dx									; 就跳到下一个 Sector
-	mov	cx, 11	; 文件名为11个字符
+	cmp	dx, 0								; Check the loop conter
+	jz	LABEL_GOTO_NEXT_SECTOR_IN_ROOT_DIR	; If finishing reading one sector
+	dec	dx									; Go to next sector.
+	mov	cx, 11								; Charactor Number of file name.
 LABEL_CMP_FILENAME:
 	cmp	cx, 0
-	jz	LABEL_FILENAME_FOUND	; 如果比较了 11 个字符都相等, 表示找到
+	jz	LABEL_FILENAME_FOUND		; If all the 11 chars are matched, find it.
 	dec	cx
-	lodsb				; ds:si -> al
+	lodsb							; ds:si => al
 	cmp	al, byte [es:di]
 	jz	LABEL_GO_ON
-	jmp	LABEL_DIFFERENT		; 只要发现不一样的字符就表明本 DirectoryEntry 不是
-; 我们要找的 LOADER.BIN
+	jmp	LABEL_DIFFERENT				; Any one char is not right, pass the current Directory Entry.
+;LOADER.BIN we are finding.
 LABEL_GO_ON:
 	inc	di
-	jmp	LABEL_CMP_FILENAME	;	继续循环
+	jmp	LABEL_CMP_FILENAME			; Go on comparing.
 
 LABEL_DIFFERENT:
-	and	di, 0FFE0h		; di &= E0 为了让它指向本条目开头
-	add	di, 20h			; di += 20h  下一个目录条目
+	and	di, 0FFE0h					; di &= E0h, point at the start of this Entry.
+	add	di, 20h						; di += 20h, go to next Entry.
 	mov	si, LoaderFileName	
 	jmp	LABEL_SEARCH_FOR_LOADERBIN
 
@@ -99,45 +99,45 @@ LABEL_GOTO_NEXT_SECTOR_IN_ROOT_DIR:
 	jmp	LABEL_SEARCH_IN_ROOT_DIR_BEGIN
 
 LABEL_NO_LOADERBIN:
-	mov	dh, 2			; "No LOADER."
-	call	DispStr		; 显示字符串
+	mov	dh, 2				; "No LOADER."
+	call	DispStr			; Display the string
 %ifdef	_BOOT_DEBUG_
 	mov	ax, 4c00h
-	int	21h			; 没有找到 LOADER.BIN, 回到 DOS
+	int	21h					; Not found LOADER.BIN, go to dos
 %else
-	jmp	$			; 没有找到 LOADER.BIN, 死循环在这里
+	jmp	$					; Not found LOADER.BIN, dead loop here.
 %endif
 
-LABEL_FILENAME_FOUND:			; 找到 LOADER.BIN 后便来到这里继续
+LABEL_FILENAME_FOUND:			; Found LOADER.BIN!!!
 	mov	ax, RootDirSectors
-	and	di, 0FFE0h		; di -> 当前条目的开始
-	add	di, 01Ah		; di -> 首 Sector
+	and	di, 0FFE0h				; di => The start of cuttent Entry
+	add	di, 01Ah				; di => First Sector.
 	mov	cx, word [es:di]
-	push	cx			; 保存此 Sector 在 FAT 中的序号
+	push	cx					; Save the No of the sector in FAT
 	add	cx, ax
-	add	cx, DeltaSectorNo	; 这句完成时 cl 里面变成 LOADER.BIN 的起始扇区号 (从 0 开始数的序号)
+	add	cx, DeltaSectorNo		; Here the Start Sector No(counted from 0) of LOADER.BIN saved in CL.
 	mov	ax, BaseOfLoader
-	mov	es, ax			; es <- BaseOfLoader
-	mov	bx, OffsetOfLoader	; bx <- OffsetOfLoader	于是, es:bx = BaseOfLoader:OffsetOfLoader = BaseOfLoader * 10h + OffsetOfLoader
-	mov	ax, cx			; ax <- Sector 号
+	mov	es, ax					; es <= BaseOfLoader
+	mov	bx, OffsetOfLoader		; bx <= OffsetOfLoader then es:bx = BaseOfLoader:OffsetOfLoader = BaseOfLoader * 10h + OffsetOfLoader
+	mov	ax, cx					; ax <= Sector No.
 
 LABEL_GOON_LOADING_FILE:
-	push	ax			; ┓
-	push	bx			; ┃
-	mov	ah, 0Eh			; ┃ 每读一个扇区就在 "Booting  " 后面打一个点, 形成这样的效果:
-	mov	al, '.'			; ┃
-	mov	bl, 0Fh			; ┃ Booting ......
-	int	10h				; ┃
-	pop	bx				; ┃
-	pop	ax				; ┛
+	push	ax			; Every reading one sector will print a '.' after "Booting " like below:
+	push	bx			; 
+	mov	ah, 0Eh			; 
+	mov	al, '.'			; Booting ......
+	mov	bl, 0Fh			; 
+	int	10h				;
+	pop	bx				;
+	pop	ax				;
 
 	mov	cl, 1
 	call	ReadSector
-	pop	ax			; 取出此 Sector 在 FAT 中的序号
+	pop	ax					; Get the No. of this sector in FAT.
 	call	GetFATEntry
 	cmp	ax, 0FFFh
 	jz	LABEL_FILE_LOADED
-	push	ax			; 保存 Sector 在 FAT 中的序号
+	push	ax				; Save the No. of this sector in FAT. 
 	mov	dx, RootDirSectors
 	add	ax, dx
 	add	ax, DeltaSectorNo
@@ -145,61 +145,61 @@ LABEL_GOON_LOADING_FILE:
 	jmp	LABEL_GOON_LOADING_FILE
 LABEL_FILE_LOADED:
 
-	mov	dh, 1			; "Ready."
-	call	DispStr			; 显示字符串
+	mov	dh, 1				; "Ready."
+	call	DispStr			; Display the string.
 
 ; *****************************************************************************************************
-	jmp	BaseOfLoader:OffsetOfLoader	; 这一句正式跳转到已加载到内存中的 LOADER.BIN 的开始处
-									; 开始执行 LOADER.BIN 的代码
-									; Boot Sector 的使命到此结束
+	jmp	BaseOfLoader:OffsetOfLoader	; This statement means jumping into the start 
+									; of LOADER.BIN and Execute the code of LOADER.BIN
+									; The task of "Boot Sector" is finished!
 ; *****************************************************************************************************
 
 
 
 ;============================================================================
-;变量
+;Global Variables
 ;----------------------------------------------------------------------------
-wRootDirSizeForLoop	dw	RootDirSectors	; Root Directory 占用的扇区数, 在循环中会递减至零.
-wSectorNo		dw	0		; 要读取的扇区号
-bOdd			db	0		; 奇数还是偶数
+wRootDirSizeForLoop	dw	RootDirSectors	; The No. of sectors LOADER.BIN populate.
+wSectorNo		dw	0					; The No. of sector to be read.
+bOdd			db	0					; Flag to indicate odd or even
 
 ;============================================================================
-;字符串
+;Constant Strings
 ;----------------------------------------------------------------------------
-LoaderFileName		db	"LOADER  BIN", 0	; LOADER.BIN 之文件名
-; 为简化代码, 下面每个字符串的长度均为 MessageLength
+LoaderFileName		db	"LOADER  BIN", 0	; The string of LOADER.BIN file name.
+;To simplify the code, the length of the strings below all are the same as MessageLength.
 MessageLength		equ	9
-BootMessage:		db	"Booting  "; 9字节, 不够则用空格补齐. 序号 0
-Message1		db	"Ready.   "; 9字节, 不够则用空格补齐. 序号 1
-Message2		db	"No LOADER"; 9字节, 不够则用空格补齐. 序号 2
+BootMessage:		db	"Booting  "; 9 Bytes, with space if not sufficiant, No.0
+Message1			db	"Ready.   "; 9 Bytes, with space if not sufficiant, No.1
+Message2			db	"No LOADER"; 9 Bytes, with space if not sufficiant, No.2
 ;============================================================================
 
 
 ;----------------------------------------------------------------------------
-; 函数名: DispStr
+; Function: DispStr
 ;----------------------------------------------------------------------------
-; 作用:
-;	显示一个字符串, 函数开始时 dh 中应该是字符串序号(0-based)
+; Description:
+; 	Reading "cl" sectors into es:bx from Sector "ax".
 DispStr:
 	mov	ax, MessageLength
 	mul	dh
 	add	ax, BootMessage
-	mov	bp, ax			; ┓
-	mov	ax, ds			; ┣ ES:BP = 串地址
-	mov	es, ax			; ┛
-	mov	cx, MessageLength	; CX = 串长度
-	mov	ax, 01301h		; AH = 13,  AL = 01h
-	mov	bx, 0007h		; 页号为0(BH = 0) 黑底白字(BL = 07h)
+	mov	bp, ax				; ES:BP = The address of the string.
+	mov	ax, ds				; 
+	mov	es, ax				;	 
+	mov	cx, MessageLength	; CX = The length of the string.
+	mov	ax, 01301h			; AH = 13,  AL = 01h
+	mov	bx, 0007h			; Page No. = 0(BH = 0), Black Background and White Fonts(BL = 07h)
 	mov	dl, 0
-	int	10h			; int 10h
+	int	10h					; int 10h
 	ret
 
 
 ;----------------------------------------------------------------------------
-; 函数名: ReadSector
+; Funtion: ReadSector
 ;----------------------------------------------------------------------------
-; 作用:
-;	从第 ax 个 Sector 开始, 将 cl 个 Sector 读入 es:bx 中
+; Description:
+;	TBD
 ReadSector:
 	; -----------------------------------------------------------------------
 	; 怎样由扇区号求扇区在磁盘中的位置 (扇区号 -> 柱面号, 起始扇区, 磁头号)
