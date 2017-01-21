@@ -25,16 +25,17 @@ PUBLIC void clock_handler(int irq)
 	ticks++;
 	p_proc_ready->ticks--;
 
-	if (k_reenter != 0) {
+	if (k_reenter != 0) 
+	{
 		return;
 	}
 
-	if (p_proc_ready->ticks > 0) {
+	if (p_proc_ready->ticks > 0) 
+	{
 		return;
 	}
 
 	schedule();
-
 }
 
 /*======================================================================*

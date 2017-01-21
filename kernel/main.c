@@ -75,7 +75,7 @@ PUBLIC int kernel_main()
 	p_proc_ready	= proc_table;
 
 	init_clock();
-        init_keyboard();
+    init_keyboard();
 
 	restart();
 
@@ -88,7 +88,8 @@ PUBLIC int kernel_main()
 void TestA()
 {
 	int i = 0;
-	while (1) {
+	while (1) 
+	{
 		/* disp_str("A."); */
 		milli_delay(10);
 	}
@@ -100,7 +101,8 @@ void TestA()
 void TestB()
 {
 	int i = 0x1000;
-	while(1){
+	while(1)
+	{
 		/* disp_str("B."); */
 		milli_delay(10);
 	}
@@ -112,7 +114,8 @@ void TestB()
 void TestC()
 {
 	int i = 0x2000;
-	while(1){
+	while(1)
+	{
 		/* disp_str("C."); */
 		milli_delay(10);
 	}
